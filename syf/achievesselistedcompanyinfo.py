@@ -1,7 +1,7 @@
 # -*- coding: gbk -*- 
 '''
 Created on 2016年4月19日
-@author: a
+@author: shenyf
 '''
 import urllib2
 import re

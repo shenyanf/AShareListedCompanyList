@@ -2,17 +2,18 @@
 '''
 Created on 2016年4月20日
 
-@author: a
+@author: shenyf
 '''
 import xlrd
 from openpyxl.workbook import Workbook
 import urllib
-from test.achievestockinfo import AchieveSSEStockInfo
+from syf.achievesselistedcompanyinfo import AchieveSSEStockInfo
 from openpyxl.compat import range
 from time import sleep
 
-class ASharesStocks:
-    '''目前从深圳交易所下载下来的《上市公司列表》格式就有问题，[无语...]，因此xls2xlsx 还有向深圳《上市公司列表》中
+class ASharesListedCompaniesList:
+    '''A股上市公司列表
+    目前从深圳交易所下载下来的《上市公司列表》格式就有问题，[无语...]，因此xls2xlsx 还有向深圳《上市公司列表》中
     追加上海交易所上市公司信息都是不可能的，只能先手动下载深圳《上市公司列表》，然后抓取上海上市公司信息，然后手动合并[无语中...]'''
     
     # file absolute path
@@ -51,13 +52,13 @@ class ASharesStocks:
             # 每获取一个上市公司完整信息就写入xlsx，避免占用过大内存
             wb.save(filename=self.filePath)
     
-    def downloadSZSEAShares(self):
+    def downloadSZSEASharesListedCompaniesList(self):
         '''下载深圳交易所上市公司信息.'''
         dls = r"http://www.szse.cn/szseWeb/ShowReport.szse?SHOWTYPE=EXCEL&CATALOGID=1110&tab1PAGENUM=1&ENCODE=1&TABKEY=tab1"
         urllib.urlretrieve(dls, self.filePath)
         
-    def aSharesStocksXLS(self, lastStockNumber):
-#         self.downloadSZSEAShares()
+    def storeASharesListedCompanies2XLS(self, lastStockNumber):
+#         self.downloadSZSEASharesStocksInfo()
 #         self.xls2xlsx()
         self.appendSSEStocks(lastStockNumber=lastStockNumber)
 
@@ -84,5 +85,5 @@ class ASharesStocks:
         return book1
         
 if __name__ == '__main__':
-    s = ASharesStocks()
-    s.aSharesStocksXLS(lastStockNumber=600001)
+    s = ASharesListedCompaniesList()
+    s.storeASharesListedCompanies2XLS(lastStockNumber=600001)
