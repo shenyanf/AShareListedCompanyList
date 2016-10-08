@@ -17,6 +17,9 @@
 
 2.执行  
   2.1下载全部代码后，导入eclipse
+  
   2.2先执行downloadSZSEAShares()
-  2.3再手动打开<A股上市公司列表。xls>,再手动另存为<A股上市公司列表.xlsx>
+  
+  2.3再手动打开<A股上市公司列表.xls>,再手动另存为<A股上市公司列表.xlsx>
+  
   2.4然后执行appendSSEStocks()
