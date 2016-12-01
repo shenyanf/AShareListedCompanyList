@@ -67,7 +67,7 @@ class OperateDB():
             for i in range(len(allIndex)):
                 l.append(allIndex[i].encode('utf-8'))
             # add l to dict h
-            h[len(h)] = l
+            h[allIndex[0]] = l
         
         cursor.close()
 #         for i in range(len(h)):

@@ -64,14 +64,12 @@ if __name__ == '__main__':
     print u'\u9ec4\u5c71\u65c5\u6e38/HSTD'.encode('utf8')
     mc = MyClass()
 #     mc.readXlsx()
-    l = [1, 2, 3, 4, 5, 5, 6]
+    l = [1, 2, 3, 4, 5, 5, 6, 3, 55]
     print tuple(l)
     print len('ANHUI WANWEI UPDATED HIGH-TECH MATERIAL INDUSTRY COMPANY LIMITED')
-    odb = OperateDB()
-    stockInfos = odb.selectFromCompany(MyUtil.selectCompany.replace('%s', MyUtil.indexs))
-    for info in stockInfos:
-        print info
-#         
-        
+
+    print l.sort()
+    print l
+    sorted()
 #         for j in range(len(stockInfos[info])):
 #             print stockInfos[info][j]

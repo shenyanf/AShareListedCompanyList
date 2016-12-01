@@ -179,7 +179,10 @@ class ASharesStocks:
                     for num in range(len(row)):
                         v = row[num].value
                         # '%s' % v, change datatime.datatime(xxxx,xx,xx,xx,xx) and float and etc to a string
-                        l.append(MyUtil.delChinese('%s' % v))
+                        if num == 3 or num == 19:
+                            l.append(MyUtil.delChinese('%s' % v))
+                        else:
+                            l.append('%s' % v)
                     
                     print 'add company %s' % row[0].value
                     odb.addCompany(MyUtil.addCompany, tuple(l))
@@ -211,13 +214,16 @@ class ASharesStocks:
         
         stockInfos = odb.selectFromCompany(MyUtil.selectCompany.replace('%s', MyUtil.indexs))
         
-        # 当前表格的信息行数
-        row = sheet.max_row
-        for i in stockInfos:
+        keyList = stockInfos.keys()
+        keyList.sort()
+        print keyList
+
+        rowNum = 2
+        for i in keyList:
             for j in range(len(stockInfos[i])):
-                _ = sheet.cell(column=j + 1, row=i + 1, value=stockInfos[i][j])
-                sheet.cell(column=j + 1, row=i + 1).border = thin_border
-            row = row + 1
+                _ = sheet.cell(column=j + 1, row=rowNum, value=stockInfos[i][j])
+                sheet.cell(column=j + 1, row=rowNum).border = thin_border
+            rowNum += 1
             
             if int(i) % 100 == 0:
                 wb.save(fileAbsPath)
