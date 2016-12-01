@@ -7,7 +7,7 @@ import urllib2
 import re
 import string
 
-class AchieveSSEStockInfo:
+class AchieveSSEStockInfo_Deprecated:
     '''获得上海证卷交易所股票信息.'''
     
     # 默认的获取指标值的表达式

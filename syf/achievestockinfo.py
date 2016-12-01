@@ -64,7 +64,7 @@ class AchieveSSEStockInfo:
         return self.__getBasicValue('FULLNAME')
     
     def getCompanyEnlishName(self):
-        return self.__getBasicValue('FULL_NAME_IN_ENGLISH')
+        return MyUtil.delChinese(self.__getBasicValue('FULL_NAME_IN_ENGLISH'))
     
     def getIpoAddress(self):
         return self.__getBasicValue('COMPANY_ADDRESS')
@@ -105,7 +105,7 @@ class AchieveSSEStockInfo:
         if AShareFlowShare != '-' and AShareFlowShare:
             aShareTotalShare += float(AShareFlowShare)
 
-        return aShareTotalShare
+        return repr(aShareTotalShare)
     
     def getASharesOutstandingCaptial(self):
         return self.__getCapitalValue('AShares')
@@ -155,11 +155,14 @@ class AchieveSSEStockInfo:
 #    'CSRC_CODE_DESC') + '/' + self.__getBasicValue('CSRC_GREAT_CODE_DESC') + '/' + self.__getBasicValue('CSRC_MIDDLE_CODE_DESC')
     
     def getWebsite(self):
-        return self.__getBasicValue('WWW_ADDRESS')
+        return MyUtil.delChinese(self.__getBasicValue('WWW_ADDRESS'))
         
     
     def __getBasicValue(self, key):
-        '''获得上市公司基本信息的值.'''
+        '''获得上市公司基本信息的值.
+           @param key: string ,basic info index to fetch
+           @return:  string, result of key
+        '''
         result = ''
         referer = 'http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=' + str(self.stockCode)
         try:
@@ -172,15 +175,20 @@ class AchieveSSEStockInfo:
                     # jsonObj 转换为字典类型
                     self.stockBasicInfo = dict((name, getattr(rsDict.result[0], name)) for name in dir(rsDict.result[0]) if not name.startswith('__'))
 #                     print self.stockBasicInfo
-            result = self.stockBasicInfo.get(key)
+            result = self.stockBasicInfo.get(key).strip()
         except:
             result = '-'
         
-#         print result
+        if not isinstance(result, basestring):
+            result = repr(result)
+    
         return result
     
     def __getCapitalValue(self, key):
-        '''获得上市公司股本信息的值.'''
+        '''获得上市公司股本信息的值.
+            @param key: capital index
+            @return:  string, result of key 
+        '''
         result = ''
         referer = 'http://www.sse.com.cn/assortment/stock/list/info/capital/index.shtml?COMPANY_CODE=' + str(self.stockCode)
         try:
@@ -193,17 +201,29 @@ class AchieveSSEStockInfo:
                     # jsonObj 转换为字典类型
                     self.stockCapitalInfo = dict((name, getattr(rsDict.result, name)) for name in dir(rsDict.result) if not name.startswith('__'))
 #                     print self.stockCapitalInfo
-            result = self.stockCapitalInfo.get(key)
+            result = self.stockCapitalInfo.get(key).strip()
         except:
             result = '-'
         
 #         print result
-        return result
+        if not isinstance(result, basestring):
+            result = repr(result)
+    
+        return result 
+        print '%s,%s' % (result, isinstance(result, basestring))
     
     def __mergeBasicURL(self, sqlId, stockCode):
-        return 'http://query.sse.com.cn/commonQuery.do?jsonCallBack=jsonpCallback12345&isPagination=false&sqlId=' + sqlId + '&productid=' + str(stockCode) + '&_=14555555555552'
+        ''' base stockCode and info type to merge url
+        @param sqlId:  info type, get from chrome develop console(F12), like:COMMON_SSE_ZQPZ_GP_GPLB_C
+        @param stockCode:  list company code
+        @return: string , request url'''
+        return 'http://query.sse.com.cn/commonQuery.do?jsonCallBack=' + MyUtil.CALLBACKMETHODNAME + '&isPagination=false&sqlId=' + sqlId + '&productid=' + str(stockCode) + '&_=14555555555552'
     
     def __init__(self, stockCode):
+        ''' 
+        generator
+        @param stockCode: list company code
+        '''
         self.stockCode = stockCode
         self.basicURLA = self.__mergeBasicURL('COMMON_SSE_ZQPZ_GP_GPLB_C', stockCode)
         # A股上市时间
@@ -217,13 +237,23 @@ class AchieveSSEStockInfo:
        
         self.stockBasicInfo = None
         self.stockCapitalInfo = None
-        pass 
-    
 
+    def allCompanyInfo(self):
+        '''
+        map reduce used, need __callMethod
+        @return list, all index's value of company
+        '''
+        l = map(self.__callMethod, self.__public__)
+        print l
+        return l
+    
+    def __callMethod(self, methodName):
+        '''
+        change string to method 
+        @return call method, it just like self.methodName()
+        '''
+        return getattr(self, methodName)()
+    
 if __name__ == '__main__':
-    for i in range(600001, 600003):
-        a = AchieveSSEStockInfo(600013)
-        for j in range(a.__public__.__len__()):
-            m = a.__public__[j]
-            f = getattr(a, m)
-            print m, f()
+    a = AchieveSSEStockInfo(603227)
+    a.allCompanyInfo()

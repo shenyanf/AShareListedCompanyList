@@ -1,27 +1,38 @@
 简介  
-  这是一个会抓取所有A股上市公司信息的python工程。
+  这是一个会抓取所有A股上市公司信息的python工程，可以保存到mysql中。数据库中的数据可以导出到excel中。
 
 使用方法：  
 1.安装依赖组件：  
-  1.1下载并安装pip   
-    https://pypi.python.org/pypi/pip#downloads  
-    setup.py install  
+	1.1下载并安装pip   
+		https://pypi.python.org/pypi/pip#downloads  
+		setup.py install  
   
-  1.2.安装openpyxl  
-    pip install openpyx  
+	1.2.安装openpyxl  
+		pip install openpyx  
 
 
-  1.3.下载并安装xlrd  
-    https://pypi.python.org/pypi/xlrd  
-    setup.py install   
+	1.3.下载并安装xlrd  
+		https://pypi.python.org/pypi/xlrd  
+		setup.py install   
 
-2.执行  
-  2.1下载全部代码后，导入eclipse
+2.执行
+	主要入口在asharelistcompany.py
+	2.1下载全部代码后，导入eclipse
   
-  2.2先执行downloadSZSEAShares()
+	2.2下载深圳交易所上市公司信息,需要手动打开并另存为xlsx
+		s.downloadSZSEAShares()
   
-  2.3再手动打开<A股上市公司列表.xls>,再手动另存为<A股上市公司列表.xlsx>
+	2.3再手动打开<A股上市公司列表.xls>,再手动另存为<A股上市公司列表.xlsx>
   
-  2.4然后执行appendSSEStocks()
+	2.4 获取上交所上市公司并入库
+		s.sseCompanyStore2DB()
+
+	2.5 获取深交所上市公司并入库
+		s.szseCompanyStore2DB()
+    
+	2.6 数据库中数据保存到xlsx中
+		s.store2xlsx()
+
+上市公司列表每月更新地址：https://my.oschina.net/sshen11111/blog/755201
 
 觉得好了，记得给个赞哦
