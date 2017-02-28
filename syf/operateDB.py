@@ -4,9 +4,8 @@ Created on 2016年11月22日
 
 @author: 58
 '''
-from syf.myutil import MyUtil
-from achievestockinfo import AchieveSSEStockInfo
 import sys
+from syf.myutil import MyUtil
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -28,12 +27,12 @@ class OperateDB():
         @param values: tuple type, insert values
         @return: add company status, True or False
         '''
+        
         # get connection
         cnx = MyUtil.getConnection()
         # get cursor
         cursor = cnx.cursor()
-        print sql
-        print values
+        
         try:
             # execute sql
             cursor.execute(sql, values)
@@ -81,6 +80,8 @@ class OperateDB():
         get all sse company code from database
         @return: list
         '''
+        print 'get the SSE companyCode that has been stored in the database'
+        
         sql = MyUtil.selectSSECompanyCode
         resMap = self.selectFromCompany(sql)
         l = []
@@ -93,6 +94,9 @@ class OperateDB():
         get all szse company code from database
         @return: list
         '''
+        
+        print 'get the SZSE companyCode that has been stored in the database'
+        
         sql = MyUtil.selectSZSECompanyCode
         resMap = self.selectFromCompany(sql)
         l = []
@@ -104,21 +108,3 @@ if __name__ == '__main__':
     a = OperateDB()
 #     a.selectFromCompany(MyUtil.selectComany.replace('%s', MyUtil.indexs))
     print a.selectSZSEAllCompanyCode()
-#     b = AchieveSSEStockInfo(600054)
-#     l = ""
-#     for j in range(b.__public__.__len__()):
-#         m = b.__public__[j]
-#         f = getattr(b, m)
-#         if True:
-#             print m, f()
-#             if not f():
-#                 l += 'NULL'
-#             try:
-#                 l += f().strip() 
-#             except:
-#                 l += repr(f()).strip()
-#             print l
-#             if j != b.__public__.__len__() - 1:
-#                 l += '|'
-#         print l
-#     a.addCompany(MyUtil.addCompany, tuple(item for item in l.split('|')))
