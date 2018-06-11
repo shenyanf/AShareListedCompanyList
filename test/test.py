@@ -12,6 +12,10 @@ from operateDB import OperateDB
 import re
 import time
 from string import zfill
+from pip._vendor.requests.cookies import RequestsCookieJar
+import requests
+from mechanize._mechanize import Browser
+from urllib import urlencode
 
 class MyClass():
     '''
@@ -77,14 +81,32 @@ def getWeather():
     print time.time()
     print MyUtil.getDatas("http://d1.weather.com.cn/sk_2d/101010100.html?_=", "http://www.weather.com.cn/weather1d/101010100.shtml")
 
-def test():
-    code = str(1)
-    print code.zfill(6)
+def test1():
+    cookie_dict = {'yfx_c_g_u_id_10000042':'_ck17051015271217105752979733547',
+                   'VISITED_MENU':'%5B%229055%22%5D',
+                   'yfx_f_l_v_t_10000042':'f_t_1494401232690__r_t_1494401232690__v_t_1494403377235__r_c_0'
+    , 'sseMenuSpecial':'8527',
+    'td_cookie':'18446744070125319008'}
+    cookies = requests.utils.cookiejar_from_dict(cookie_dict, cookiejar=None, overwrite=True)
     
+    s = requests.Session()
+    s.cookies = cookies
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'}
+
+    s.get('http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288', headers=headers)
+#     s.get('http://sia.sseinfo.com/noc.gif?WS=10000042&RD=common&SWS=&SWSID=&SWSPID=&JSVER=20170109&TDT=&UC=_ck17051015271217105752979733547&LUC=&VUC=_vk1494401232690&FS=&RF=&PS=www.sse.com.cn&PU=%2Fassortment%2Fstock%2Flist%2Finfo%2Fcompany%2Findex.shtml%3FCOMPANY_CODE%3D600066&PT=&PER=0&PC=&PI=&LM=1494401232000&LG=zh-CN&CL=24&CK=1&SS=1366*768&SCW=371&SCH=638&SSH=879&FT=1494401232690&LT=1494401232690&DL=0&FL=0&CKT=HttpCookie&JV=0&AL=0&SY=windows%20nt%206.1&BR=chrome&TZ=-8&AU=&UN=&UID=&URT=&UA=&US=&TID=&MT=&FMSRC=same&MSRC=&MSCH=&EDM=&RC=0&SHPIC=&MID=1494401232690200&TT=%E5%85%AC%E5%8F%B8%E6%A6%82%E5%86%B5%20%7C%20%E4%B8%8A%E6%B5%B7%E8%AF%81%E5%88%B8%E4%BA%A4%E6%98%93%E6%89%80&CHK=126&SHT=sse.com.cn&RDM=0.320455976428041')
+    r = s.get('http://query.sse.com.cn/commonQuery.do?jsonCallBack=jsonpCallback63654&isPagination=false&sqlId=COMMON_SSE_ZQPZ_GP_GPLB_C&productid=601288&_=1494238148603', headers=headers)
+    print r
+   
+def test2():
+    br = Browser()  # Create a browser
+    br.open('http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601288') 
+    print br.response().read()
+
 if __name__ == '__main__':
     print u'\u9ec4\u5c71\u65c5\u6e38/HSTD'.encode('utf8')
     mc = MyClass()
-    test()
+    test1()
     
 #     mc.readXlsx()
     l = ['adb', 'abc']

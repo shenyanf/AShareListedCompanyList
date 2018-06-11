@@ -3,25 +3,14 @@
 Created on 2016年10月08日
 @author: shenyanf
 '''
-from syf.myutil import MyUtil
+from myutil import MyUtil
+import datetime
 
 class AchieveSSEStockInfo:
     '''获得上海证卷交易所股票信息.'''
-    
-    # 指标的方法，顺序已经排好，请不要乱动
-#     ['getCompanyCode', 'getCompanyShortName', 'getCompanyName', 'getCompanyEnlishName', 'getIpoAddress',
-# 'getASharesCode', 'getASharesShortName', 'getASharesIPODate', 'getASharesTotalCapital', 
-# 'getASharesOutstandingCaptial','getBSharesCode', 'getBSharesShortName', 'getBSharesIPODate', 'getBSharesTotalCapital', 
-# 'getBSharesOutstandingCaptial','getArea', 'getProvince', 'getCity', 'getTrade', 'getWebsite']
+
+    # 方法名由数据库表中的字段和'get'前缀拼接而成
     methodList = map(lambda x:'get' + x, map(MyUtil.firstCharUpper, list(MyUtil.indexs.split(','))))
-    
-    achieveIndexFromURLA = ['CHANGEABLE_BOND_ABBR', 'OFFICE_ZIP', 'AREA_NAME_DESC', 'FULL_NAME_IN_ENGLISH',
-                            'COMPANY_CODE', 'CSRC_MIDDLE_CODE_DESC', 'SECURITY_ABBR_A', 'COMPANY_ADDRESS',
-                            'SECURITY_CODE_A', 'SECURITY_CODE_B', 'SECURITY_30_DESC', 'COMPANY_ABBR', 'OFFICE_ADDRESS',
-                             'CHANGEABLE_BOND_CODE', 'ENGLISH_ABBR', 'LEGAL_REPRESENTATIVE', 'REPR_PHONE',
-                             'E_MAIL_ADDRESS', 'FOREIGN_LISTING_ADDRESS', 'STATE_CODE_A_DESC', 'SSE_CODE_DESC',
-                             'FOREIGN_LISTING_DESC', 'SECURITY_CODE_A_SZ', 'CSRC_GREAT_CODE_DESC', 'WWW_ADDRESS',
-                             'CSRC_CODE_DESC', 'STATE_CODE_B_DESC', 'FULLNAME']
     
     '''
     all indexs as follow:
@@ -115,15 +104,16 @@ class AchieveSSEStockInfo:
         @return: 返回string类型;如果没有数据或发生异常，返回'-'
         '''
         result = ''
-        referer = 'http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=' + \
         str(self.stockCode)
         try:
-            rsDict = MyUtil.getDatas(self.basicURLB, referer)
+            rsDict = MyUtil.getDatas(url=self.basicURLB, referer=self.referer)
             if rsDict == '-' or rsDict is None:
                 result = '-'
             else:
-                ipoDate = dict((name, getattr(rsDict.result[0], name)) for name in dir(rsDict.result[0]) if not 
-                               name.startswith('__'))
+                if isinstance(rsDict, list):
+                    ipoDate = rsDict[0]
+                else:
+                    ipoDate = rsDict
 #                 print ipoDate
                 result = ipoDate.get('LISTINGDATEA')
         except:
@@ -199,15 +189,15 @@ class AchieveSSEStockInfo:
         @return: 返回string类型;如果没有数据或发生异常，返回'-'
         '''
         result = ''
-        referer = 'http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=' + \
-         str(self.stockCode)
         try:
-            rsDict = MyUtil.getDatas(self.basicURLC, referer)
+            rsDict = MyUtil.getDatas(url=self.basicURLC, referer=self.referer)
             if rsDict == '-' or rsDict is None:
                 result = '-'
             else:
-                ipoDate = dict((name, getattr(rsDict.result[0], name)) for name in dir(rsDict.result[0]) if not 
-                               name.startswith('__'))
+                if isinstance(rsDict, list):
+                    ipoDate = rsDict[0]
+                else:
+                    ipoDate = rsDict
 #                 print ipoDate
                 result = ipoDate.get('LISTINGDATEB')
         except:
@@ -259,18 +249,18 @@ class AchieveSSEStockInfo:
            @return:  string, result of key
         '''
         result = ''
-        referer = 'http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=' + \
-        str(self.stockCode)
         try:
             # 首次使用该方法，需要访问url，获取网页内容
             if self.stockBasicInfo == None:
-                rsDict = MyUtil.getDatas(self.basicURLA, referer)
+                rsDict = MyUtil.getDatas(url=self.basicURLA, referer=self.referer)
                 if rsDict == '-' or rsDict is None:
                     result = '-'
                 else:
                     # jsonObj 转换为字典类型
-                    self.stockBasicInfo = dict((name, getattr(rsDict.result[0], name)) for name in 
-                                               dir(rsDict.result[0]) if not name.startswith('__'))
+                    if isinstance(rsDict, list):
+                        self.stockBasicInfo = rsDict[0]
+                    else:
+                        self.stockBasicInfo = rsDict
 #                     print self.stockBasicInfo
             result = self.stockBasicInfo.get(key).strip()
         except:
@@ -287,18 +277,17 @@ class AchieveSSEStockInfo:
             @return:  string, result of key 
         '''
         result = ''
-        referer = 'http://www.sse.com.cn/assortment/stock/list/info/capital/index.shtml?COMPANY_CODE=' + \
-         str(self.stockCode)
         try:
             # 首次使用该方法，需要访问url，获取网页内容
             if self.stockCapitalInfo == None:
-                rsDict = MyUtil.getDatas(self.capitalURL, referer)
+                rsDict = MyUtil.getDatas(url=self.capitalURL, referer=self.referer)
                 if rsDict == '-' or rsDict is None:
                     result = '-'
                 else:
-                    # jsonObj 转换为字典类型
-                    self.stockCapitalInfo = dict((name, getattr(rsDict.result, name)) for name in dir(rsDict.result) 
-                                                 if not name.startswith('__'))
+                    if isinstance(rsDict, list):
+                        self.stockCapitalInfo = rsDict[0]
+                    else:
+                        self.stockCapitalInfo = rsDict
 #                     print self.stockCapitalInfo
             result = self.stockCapitalInfo.get(key).strip()
         except:
@@ -311,19 +300,22 @@ class AchieveSSEStockInfo:
         return result 
     
     def __mergeBasicURL(self, sqlId, stockCode):
-        ''' base stockCode and info type to merge url
+        ''' 股票代码和sqlId组合成ajax请求的url
         @param sqlId:  info type, get from chrome develop console(F12), like:COMMON_SSE_ZQPZ_GP_GPLB_C
-        @param stockCode:  list company code
+        @param stockCode: 股票代码
         @return: string , request url'''
         return 'http://query.sse.com.cn/commonQuery.do?jsonCallBack=' + MyUtil.CALLBACKMETHODNAME + \
-    '&isPagination=false&sqlId=' + sqlId + '&productid=' + str(stockCode) + '&_=14555555555552'
+    '&isPagination=false&sqlId=' + sqlId + '&productid=' + str(stockCode) + '&_='
     
     def __init__(self, stockCode):
         ''' 
-        generator
-        @param stockCode: list company code
+        basicURLA、basicURLB、basicURLC、basicURLD、capitalURL、disclosure 结尾的'_'需要赋值为当前时间戳，myutil getDatas中会加上
+        @param stockCode: 股票代码
         '''
+        today = datetime.date.today().strftime('%Y%m%d')
+        
         self.stockCode = stockCode
+        # 公司概况
         self.basicURLA = self.__mergeBasicURL('COMMON_SSE_ZQPZ_GP_GPLB_C', stockCode)
         # A股上市时间
         self.basicURLB = self.__mergeBasicURL('COMMON_SSE_ZQPZ_GP_GPLB_AGSSR_C', stockCode)
@@ -331,26 +323,39 @@ class AchieveSSEStockInfo:
         self.basicURLC = self.__mergeBasicURL('COMMON_SSE_ZQPZ_GP_GPLB_BGSSR_C', stockCode)
         # 秘书信息
         self.basicURLD = self.__mergeBasicURL('COMMON_SSE_ZQPZ_GP_GPLB_MSXX_C', stockCode)
-        self.basicURLE = r'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback46644&isPagination=' + \
-        'true&stockCode=' + str(stockCode) + '&tradeBeginDate=19700101&tradeEndDate=20161001&order=' + \
-        'tradeBeginDate%7Cdesc&sqlId=PL_SCRL_SCRLB&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&' + \
-        'pageHelp.endPage=1&pageHelp.pageSize=5&_=1475720975596'
+        
+        # 获得上市公司股本信息的值
         self.capitalURL = 'http://query.sse.com.cn/security/stock/queryCompanyStockStruct.do?jsonCallBack=' + \
-        'jsonpCallback86976&isPagination=false&companyCode=' + str(stockCode) + '&_=1475732919742'
+        'jsonpCallback86976&isPagination=false&companyCode=' + str(stockCode) + '&_='
        
+        # request header refer，请求头中的refer信息
+        self.referer = 'http://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=' + \
+        str(self.stockCode)
+        
+        # 市场日历，季报、半年报、年报、分红等公告信息  暂时没有用到
+        self.disclosure = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback86207&' + \
+        'isPagination=true&stockCode=600066&tradeBeginDate=19700101&tradeEndDate=' + today + '&order=' + \
+        'tradeBeginDate%7Cdesc&sqlId=PL_SCRL_SCRLB&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1' + \
+        '&pageHelp.endPage=1&pageHelp.pageSize=5&_='
+        
+        # 当前股票的基本信息
         self.stockBasicInfo = None
+        # 当前股票的股本信息
         self.stockCapitalInfo = None
 
     def allCompanyInfo(self):
         '''
+        当前公司的所有信息
         map reduce used, need __callMethod
         @return list, all index's value of company
         '''
         l = map(self.__callMethod, self.methodList)
+        print l
         return l
     
     def __callMethod(self, methodName):
         '''
+        由方法名变为方法调用
         change string to method 
         @return call method, it just like self.methodName()
         '''
@@ -359,4 +364,4 @@ class AchieveSSEStockInfo:
         
 if __name__ == '__main__':
     a = AchieveSSEStockInfo(603227)
-    a.allCompanyInfo()
+    print a.allCompanyInfo()

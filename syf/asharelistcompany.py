@@ -4,7 +4,6 @@ Created on 2016年10月08日
 @author: shenyanf
 '''
 
-import xlrd
 import urllib
 from achievestockinfo import AchieveSSEStockInfo
 from openpyxl.reader.excel import load_workbook
@@ -13,17 +12,18 @@ from operateDB import OperateDB
 import datetime
 from openpyxl.workbook.workbook import Workbook
 import os
-import re
 import code
-import settings
 from syf.myutil import MyUtil
+import pandas as pd
 
 class ASharesStocks:
-    '''目前从深圳交易所下载下来的《上市公司列表》格式就有问题，[无语...]，因此xls2xlsx 还有自动向深圳《上市公司列表》中
-    追加上海交易所上市公司信息都是不可能的，只能先手动下载深圳《上市公司列表》，再手动另存为xlsx格式，然后抓取上海上市公司信息，然后追加到上述表格中'''
+    '''
+    下载深交所上市公司信息，抓取上交所上市公司信息，入库后，导出到xlsx中
+    '''
     
+    fileName = u'A股上市公司列表'
     # file absolute path
-    filePath = u"d:\\A股上市公司列表.xlsx"
+    filePath = u"d:\\" + fileName + ".xlsx"
     downloadFilePath = filePath.replace('xlsx', 'xls')
     
     # xlsx 标题
@@ -46,7 +46,7 @@ class ASharesStocks:
 #             _ = sheet.cell(column=i + 1, row=1, value=self.__indexName[i])
         # 当前表格的信息行数
         row = sheet.max_row
-        for i in self.__getSSEAShareListCompanyCode():
+        for i in self.getSSEAShareListCompanyCode():
             a = AchieveSSEStockInfo(i)
              
             if not a.getStatus():
@@ -74,38 +74,36 @@ class ASharesStocks:
             if os.path.exists(self.downloadFilePath):
                 os.remove(self.downloadFilePath)
             urllib.urlretrieve(dls, self.downloadFilePath)
+
+            # 下载后直接零存为xlsx格式
+            self.__htmlTable2xlsx()
         except Exception, e:
             print e
             return False
         else:
             return True
         
-    def xls2xlsx(self):
+    def __htmlTable2xlsx(self):
         '''
-        该方法目前不可用
-        把xls转换为xlsx格式        
+        直接下载的深交所上市公司信息是html table格式的，使用pandas可以直接保存到xlsx中 
         '''
-        # first open using xlrd
-        book = xlrd.open_workbook(self.filePath)
-        index = 0
-        nrows, ncols = 0, 0
-        while nrows * ncols == 0:
-            sheet = book.sheet_by_index(index)
-            nrows = sheet.nrows
-            ncols = sheet.ncols
-            index += 1
+        with open(self.downloadFilePath, 'r') as f:
+            dataFrames = pd.read_html(f.read())
+
+        # 只有一个sheet
+        df1 = dataFrames[0]
     
-        # prepare a xlsx sheet
-        book1 = xlrd.open_workbook()
-        sheet1 = book1.active
-    
-        for row in xrange(1, nrows):
-            for col in xrange(1, ncols):
-                sheet1.cell(row=row, column=col).value = sheet.cell_value(row, col)
+        writer = pd.ExcelWriter(self.filePath, engine='xlsxwriter')
+        df1.to_excel(writer , encoding="utf-8")
+        writer.save()
         
-        book1.save(filename=u'd:\\A.xlsx')
-        return book1
-    
+        f.close()
+        writer.close()
+        
+        # 删除下载的不可用的xls文件
+        if os.path.exists(self.downloadFilePath):
+            os.remove(self.downloadFilePath)
+        
     def __mergeURL(self, pageNum, firstPage=True):
         """
         @param pageNum: 第几页
@@ -113,12 +111,13 @@ class ASharesStocks:
         @return:    合成的url
         """
         return 'http://query.sse.com.cn/security/stock/getStockListData2.do?&jsonCallBack=jsonpCallback53818&is' + \
-        'Pagination=true&stockCode=&csrcCode=&areaName=&stockType=1&pageHelp.cacheSize=1&pageHelp.beginPage=' + pageNum
-        + '&pageHelp.pageSize=25' + (firstPage and '&pageHelp.endPage=' + pageNum + '1' or '') + '&pageHelp.pageNo=' + \
-        pageNum + '&_=1475850022386'
+        'Pagination=true&stockCode=&csrcCode=&areaName=&stockType=1&pageHelp.cacheSize=1&pageHelp.beginPage=' + \
+        pageNum + '&pageHelp.pageSize=25' + (firstPage and '&pageHelp.endPage=' + pageNum + '1' or '') + \
+        '&pageHelp.pageNo=' + pageNum + '&_='
     
-    def __getSSEAShareListCompanyCode(self):
+    def getSSEAShareListCompanyCode(self):
         """
+        获取上交所所有上市公司股票代码
         @return: list, all sse list company code, get from website
         """
         
@@ -128,32 +127,32 @@ class ASharesStocks:
         totalCompany = 0
         referer = r'http://www.sse.com.cn/assortment/stock/list/share/'
 #         第一次获取表格首页信息及总页数等信息
-        jsonCallBackPythonObjData = MyUtil.getDatas(self.__mergeURL('1'), referer)
+        jsonCallBackPythonObjData = MyUtil.getDatas(self.__mergeURL('1'), 'pageHelp', referer)
         if not jsonCallBackPythonObjData:
             return None
         else:
             # 总页数
-            pageCount = jsonCallBackPythonObjData.pageHelp.pageCount
+            pageCount = jsonCallBackPythonObjData['pageCount']
             # 每页多少条记录
-            pageSize = jsonCallBackPythonObjData.pageHelp.pageSize
+            pageSize = jsonCallBackPythonObjData['pageSize']
             # 总共多少上市公司
-            total = jsonCallBackPythonObjData.pageHelp.total
+            total = jsonCallBackPythonObjData['total']
 
         for i in range(1, pageCount + 1):
             # 获取第i页上市公司信息
-            jsonCallBackPythonObjData = MyUtil.getDatas(self.__mergeURL(str(i), False), referer)
-            for j in range(0, pageSize):
-                if totalCompany == total:
-                    break;
-                datas = jsonCallBackPythonObjData.pageHelp.data[j]
-                rsDict = dict((name, getattr(datas, name)) for name in dir(datas) if not name.startswith('__'))
-                companyCode = rsDict.get('COMPANY_CODE').encode('utf-8')
+            jsonCallBackPythonObjData = MyUtil.getDatas(self.__mergeURL(str(i), False), 'pageHelp', referer)
+            if totalCompany == total:
+                break;
+            datas = jsonCallBackPythonObjData['data']
+            for a in datas:
+                companyCode = a['COMPANY_CODE']
                 l.append(companyCode)
                 totalCompany += 1
         
         if len(l) != total:
             print 'The total does not match the actual'
 
+        print l
         return l
     
     def sseCompanyStore2DB(self):
@@ -165,8 +164,7 @@ class ASharesStocks:
         odb = OperateDB()
         try:
             # list of company code, those listed but not store in database
-            resList = list(set(self.__getSSEAShareListCompanyCode()) ^ set(odb.selectSSEAllCompanyCode()))
-    #         resList = self.__getSSEAShareListCompanyCode()
+            resList = list(set(self.getSSEAShareListCompanyCode()) ^ set(odb.selectSSEAllCompanyCode()))
             print "need fetch :%s" % resList
             for i in resList:
                 stockinfo = AchieveSSEStockInfo(i)
@@ -269,19 +267,13 @@ style='thin'))
         
 if __name__ == '__main__':
     s = ASharesStocks()
-# 下载深圳交易所上市公司信息, 需要手动打开并另存为xlsx
-    inputValue = raw_input("Input 'Y', download szseListedCompany.xlsx \n" + \
-     "or 'N', store to database and output to xlsx\n")
-    m = re.search('^[Y|y][E|e]{0,}[S|s]{0,}', inputValue)
-    if m:
-        print 'you input is %s' % m.group()
-        s.downloadSZSEAShares()
-        print 'Please manully change %s to xlsx type ' % s.downloadFilePath
-    else:
-        # 初始化辅助类
-        MyUtil()
-        # 获取上交所上市公司并入库及获取深交所上市公司并入库
-        if  s.sseCompanyStore2DB() and  s.szseCompanyStore2DB():
-            # 数据库中数据保存到xlsx中
-            s.store2xlsx()
-            print 'all A share listed company already store to database and export to %s' % s.filePath 
+    # 下载深圳交易所上市公司信息, 需要手动打开并另存为xlsx
+    s.downloadSZSEAShares()
+    print 'Download finish. file full path:%s' % s.filePath
+    # 初始化辅助类
+    MyUtil()
+    # 获取上交所上市公司并入库及获取深交所上市公司并入库
+    if  s.sseCompanyStore2DB() and  s.szseCompanyStore2DB():
+        # 数据库中数据保存到xlsx中
+        s.store2xlsx()
+        print 'all A share listed company already store to database and export to %s' % s.filePath 
