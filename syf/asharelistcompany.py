@@ -94,7 +94,8 @@ class ASharesStocks:
         df1 = dataFrames[0]
     
         writer = pd.ExcelWriter(self.filePath, engine='xlsxwriter')
-        df1.to_excel(writer , encoding="utf-8")
+        # index=False 不需要第一列默认的自增id
+        df1.to_excel(writer , encoding="utf-8", index=False)
         writer.save()
         
         f.close()

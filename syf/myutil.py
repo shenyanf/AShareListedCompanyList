@@ -82,8 +82,6 @@ class MyUtil:
         resp.encoding = 'utf-8'
         respContent = resp.text
         
-        print respContent
-        
         # 结果为jsonpCallback86976({xxxxxxxx})形式,需要转换为python dict类型
         jsonContent = respContent[len(cls.CALLBACKMETHODNAME) + 1:-1]
         # 最外层的dict类型
