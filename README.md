@@ -33,8 +33,11 @@
 
 	1.3.下载并安装xlrd  
 		https://pypi.python.org/pypi/xlrd  
-		setup.py install   
-
+		setup.py install 
+	
+	1.4.下载安装pands
+		pip install pandas
+		
 2.执行
 	主要入口在asharelistcompany.py
 	
